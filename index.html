@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Sealed Scroll</title>
   <style>
     * {
@@ -37,12 +37,15 @@
     h1 {
       margin: 0 0 10px;
       font-size: 20px;
+      line-height: 1.25;
     }
 
     .sub {
-      margin-bottom: 24px;
+      margin: 0 auto 24px;
       font-size: 13px;
-      opacity: 0.75;
+      line-height: 1.5;
+      opacity: 0.8;
+      max-width: 360px;
     }
 
     .phrase-grid {
@@ -53,7 +56,8 @@
       margin-bottom: 20px;
     }
 
-    .slot, .letter {
+    .slot,
+    .letter {
       display: flex;
       align-items: center;
       justify-content: center;
@@ -78,6 +82,12 @@
       height: 60px;
     }
 
+    .slot:hover,
+    .letter:hover,
+    button:hover {
+      transform: scale(1.03);
+    }
+
     .selected {
       box-shadow: 0 0 14px rgba(255, 215, 140, 0.42);
       border-color: rgba(255, 222, 148, 0.95);
@@ -85,11 +95,11 @@
     }
 
     .solved {
-      opacity: 0.7;
+      opacity: 0.72;
     }
 
     .decoded {
-      min-height: 32px;
+      min-height: 34px;
       margin: 10px 0;
       font-size: 20px;
       letter-spacing: 2px;
@@ -101,7 +111,7 @@
       min-height: 20px;
       margin-bottom: 16px;
       font-size: 13px;
-      opacity: 0.75;
+      opacity: 0.8;
     }
 
     .letters {
@@ -126,166 +136,4 @@
       font-family: Georgia, serif;
       font-size: 15px;
       cursor: pointer;
-    }
-
-    .hidden {
-      display: none;
-    }
-
-    .scroll {
-      margin-top: 24px;
-      padding: 22px;
-      background: linear-gradient(180deg, #f6ebc8, #ead7aa);
-      color: #4a3219;
-      border-radius: 16px;
-      line-height: 1.7;
-      white-space: pre-line;
-      text-align: center;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h1>traveler... decode the ancient inscription</h1>
-    <div class="sub">each symbol holds a hidden truth</div>
-
-    <div id="grid" class="phrase-grid"></div>
-
-    <div id="decoded" class="decoded"></div>
-    <div id="hint">tap a symbol, then its matching letter</div>
-
-    <div id="letters" class="letters"></div>
-
-    <button id="unlock" class="hidden">open the sealed scroll...</button>
-
-    <div id="scroll" class="scroll hidden">hidden message decoded:
-
-i think my heart has already made its choice.
-i'm not holding back anymore.
-i'm going all in on what i feel for you.
-i'm hoping you're the one.
-and wherever october leads us, i'll be grateful for what's been real between us.
-but no matter what happens, i hope you never doubt that you were gently loved and cared for, with my whole heart.</div>
-  </div>
-
-  <script>
-    const phrase = "SEEK THE HIDDEN TRUTH";
-
-    const symbolMap = {
-      S: "",
-      E: "",
-      K: "",
-      T: "",
-      H: "",
-      I: "",
-      D: "",
-      N: "",
-      R: "",
-      U: ""
-    };
-
-    const letterBank = ["S", "E", "K", "T", "H", "I", "D", "N", "R", "U"];
-
-    const grid = document.getElementById("grid");
-    const decoded = document.getElementById("decoded");
-    const hint = document.getElementById("hint");
-    const lettersWrap = document.getElementById("letters");
-    const unlockBtn = document.getElementById("unlock");
-    const scroll = document.getElementById("scroll");
-
-    let activeSlot = null;
-    let finished = false;
-
-    const phraseChars = phrase.split("");
-    const solved = phraseChars.map(function(char) {
-      return char === " " ? " " : "_";
-    });
-
-    function renderGrid() {
-      grid.innerHTML = "";
-
-      phraseChars.forEach(function(char, index) {
-        if (char === " ") {
-          const space = document.createElement("div");
-          space.className = "space";
-          grid.appendChild(space);
-          return;
-        }
-
-        const slot = document.createElement("div");
-        slot.className = "slot";
-        slot.dataset.index = index;
-        slot.dataset.letter = char;
-        slot.textContent = symbolMap[char];
-
-        slot.addEventListener("click", function() {
-          if (slot.classList.contains("solved")) return;
-
-          const allSlots = document.querySelectorAll(".slot");
-          allSlots.forEach(function(s) {
-            s.classList.remove("selected");
-          });
-
-          slot.classList.add("selected");
-          activeSlot = slot;
-          hint.textContent = "now choose the matching letter";
-        });
-
-        grid.appendChild(slot);
-      });
-    }
-
-    function renderLetters() {
-      lettersWrap.innerHTML = "";
-
-      letterBank.forEach(function(letter) {
-        const tile = document.createElement("div");
-        tile.className = "letter";
-        tile.textContent = letter;
-        tile.dataset.letter = letter;
-
-        tile.addEventListener("click", function() {
-          if (!activeSlot || finished) return;
-
-          const chosen = tile.dataset.letter;
-          const correct = activeSlot.dataset.letter;
-          const idx = Number(activeSlot.dataset.index);
-
-          if (chosen === correct) {
-            solved[idx] = correct;
-            activeSlot.classList.remove("selected");
-            activeSlot.classList.add("solved");
-            activeSlot = null;
-            hint.textContent = "correct...";
-            updateDecoded();
-          } else {
-            hint.textContent = "that symbol asks for a different letter";
-          }
-        });
-
-        lettersWrap.appendChild(tile);
-      });
-    }
-
-    function updateDecoded() {
-      decoded.textContent = solved.join("");
-
-      if (!finished && solved.join("") === phrase) {
-        finished = true;
-        hint.textContent = "the inscription is complete...";
-        unlockBtn.classList.remove("hidden");
-      }
-    }
-
-    unlockBtn.addEventListener("click", function() {
-      scroll.classList.remove("hidden");
-      unlockBtn.classList.add("hidden");
-      hint.textContent = "the sealed scroll opens...";
-    });
-
-    renderGrid();
-    renderLetters();
-    updateDecoded();
-  </script>
-</body>
-</html>
+      box-shadow: 0
